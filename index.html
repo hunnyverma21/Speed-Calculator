@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speed Calculator</title>
+  <style>
+    :root { --blue:#2563eb; --ink:#14213d; --muted:#64748b; --line:#dbe5f2; --green:#13805d; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; padding:32px 16px;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color:var(--ink); background:linear-gradient(135deg,#f4f8ff,#f8fbff 55%,#f5fff9);
+    }
+    .wrap { max-width:980px; margin:0 auto; }
+    header { text-align:center; margin:10px 0 30px; }
+    .gauge { font-size:42px; line-height:1.2; }
+    h1 { font-size:clamp(2rem,5vw,3rem); margin:8px 0; letter-spacing:-1px; }
+    header p { color:var(--muted); margin:0; font-size:1.05rem; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .panel { border:1px solid var(--line); border-radius:18px; overflow:hidden; background:rgba(255,255,255,.92); box-shadow:0 8px 28px #243e6810; }
+    .panel h2 { margin:0; padding:18px 22px; font-size:1.2rem; background:#f0f6ff; }
+    .inner { padding:22px; }
+    .field { margin-bottom:20px; }
+    label { display:block; font-weight:700; margin-bottom:7px; }
+    .hint { display:block; color:var(--muted); font-size:.9rem; font-weight:400; margin-top:3px; }
+    .inputrow { display:grid; grid-template-columns:1fr 112px; gap:10px; }
+    input, select { width:100%; min-width:0; border:1px solid #d4dfef; border-radius:11px; padding:13px 14px; font:inherit; color:var(--ink); background:#fff; outline:none; }
+    input:focus, select:focus { border-color:var(--blue); box-shadow:0 0 0 3px #2563eb20; }
+    button { width:100%; border:0; border-radius:12px; padding:15px; background:linear-gradient(100deg,#2563eb,#3478f6); color:#fff; font:inherit; font-weight:750; cursor:pointer; transition:transform .15s,filter .15s; }
+    button:hover { filter:brightness(1.04); } button:active { transform:scale(.99); }
+    .result-panel { background:#f1fcf7; border-color:#c8ecdd; }
+    .result-panel h2 { background:#eafaf3; }
+    .result-box { text-align:center; padding:24px 12px; border:1px solid #bfe8d6; background:#e8f9f1; border-radius:13px; }
+    .result-label { color:#176b52; font-weight:700; }
+    .speed { color:var(--green); font-size:clamp(2rem,4vw,3rem); font-weight:850; margin:8px 0 3px; overflow-wrap:anywhere; }
+    .secondary { color:#176b52; font-size:1.1rem; }
+    .error { color:#b42318; min-height:1.3em; font-size:.9rem; margin-top:10px; }
+    .details { border-top:1px solid #c8ecdd; margin-top:20px; padding-top:14px; }
+    .details h3 { margin:0 0 12px; font-size:1rem; }
+    .detail-row { display:flex; justify-content:space-between; gap:12px; margin:10px 0; color:#334766; }
+    .lower { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px; }
+    .note { padding:18px 20px; border-radius:16px; border:1px solid #d5e7ff; background:#eff6ff; }
+    .note h3 { margin:0 0 10px; } .note p, .note li { color:#526687; line-height:1.6; }
+    .formula { text-align:center; font-size:1.25rem; font-style:italic; margin:18px 0 8px; }
+    ul { padding-left:20px; margin:8px 0 0; }
+    footer { text-align:center; color:#94a3b8; font-size:.85rem; margin-top:22px; }
+    @media (max-width:720px) { .grid,.lower { grid-template-columns:1fr; } body { padding:20px 12px; } .inner { padding:18px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="gauge" aria-hidden="true">◴</div>
+      <h1>Speed Calculator</h1>
+      <p>Calculate average speed using distance and time</p>
+    </header>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Enter Values</h2>
+        <div class="inner">
+          <div class="field">
+            <label for="distance">Distance <span class="hint">Enter the distance travelled</span></label>
+            <div class="inputrow">
+              <input id="distance" type="number" min="0" step="any" value="120" placeholder="e.g. 120">
+              <select id="distanceUnit" aria-label="Distance unit">
+                <option value="km">Kilometers (km)</option>
+                <option value="m">Meters (m)</option>
+                <option value="mi">Miles (mi)</option>
+                <option value="ft">Feet (ft)</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="time">Time <span class="hint">Enter the time taken</span></label>
+            <div class="inputrow">
+              <input id="time" type="number" min="0" step="any" value="2" placeholder="e.g. 2">
+              <select id="timeUnit" aria-label="Time unit">
+                <option value="h">Hours</option>
+                <option value="min">Minutes</option>
+                <option value="s">Seconds</option>
+              </select>
+            </div>
+          </div>
+          <button id="calculate" type="button">▦ &nbsp; Calculate Speed</button>
+          <div id="error" class="error" role="alert"></div>
+        </div>
+      </article>
+
+      <article class="panel result-panel">
+        <h2>Result</h2>
+        <div class="inner">
+          <div class="result-box" aria-live="polite">
+            <div class="result-label">Average Speed</div>
+            <div id="speedKmh" class="speed">60 km/h</div>
+            <div id="speedMs" class="secondary">16.67 m/s</div>
+          </div>
+          <div class="details">
+            <h3>Calculation Details</h3>
+            <div class="detail-row"><span>Distance</span><strong id="detailDistance">120 km</strong></div>
+            <div class="detail-row"><span>Time</span><strong id="detailTime">2 hours</strong></div>
+            <div class="detail-row"><span>Formula</span><strong>Distance ÷ Time</strong></div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="lower">
+      <article class="note">
+        <h3>💡 Formula</h3>
+        <div class="formula">Speed = Distance ÷ Time</div>
+        <p>Convert distance to meters and time to seconds to calculate the result consistently.</p>
+      </article>
+      <article class="note" style="background:#f7f5ff;border-color:#e4defb">
+        <h3>ⓘ Quick Notes</h3>
+        <ul>
+          <li>1 km/h = 0.27778 m/s</li>
+          <li>1 m/s = 3.6 km/h</li>
+          <li>Time must be greater than zero.</li>
+          <li>Use the dropdowns to change units.</li>
+        </ul>
+      </article>
+    </section>
+    <footer>Made for quick, simple speed calculations.</footer>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const distanceFactors = { km: 1000, m: 1, mi: 1609.344, ft: 0.3048 };
+    const distanceNames = { km: 'km', m: 'm', mi: 'mi', ft: 'ft' };
+    const timeFactors = { h: 3600, min: 60, s: 1 };
+    const timeNames = { h: 'hours', min: 'minutes', s: 'seconds' };
+
+    function fmt(n) {
+      if (!Number.isFinite(n)) return '—';
+      return new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 }).format(n);
+    }
+    function calculate() {
+      const distance = Number($('distance').value);
+      const time = Number($('time').value);
+      const du = $('distanceUnit').value;
+      const tu = $('timeUnit').value;
+      const error = $('error');
+
+      if ($('distance').value.trim() === '' || !Number.isFinite(distance) || distance < 0) {
+        error.textContent = 'Please enter a valid distance (zero or greater).';
+        return;
+      }
+      if ($('time').value.trim() === '' || !Number.isFinite(time) || time <= 0) {
+        error.textContent = 'Please enter a valid time greater than zero.';
+        return;
+      }
+      error.textContent = '';
+      const meters = distance * distanceFactors[du];
+      const seconds = time * timeFactors[tu];
+      const mps = meters / seconds;
+      const kmh = mps * 3.6;
+
+      $('speedKmh').textContent = `${fmt(kmh)} km/h`;
+      $('speedMs').textContent = `${fmt(mps)} m/s`;
+      $('detailDistance').textContent = `${fmt(distance)} ${distanceNames[du]}`;
+      $('detailTime').textContent = `${fmt(time)} ${timeNames[tu]}`;
+    }
+    $('calculate').addEventListener('click', calculate);
+    ['distance','time','distanceUnit','timeUnit'].forEach(id => $(id).addEventListener('input', calculate));
+    calculate();
+  </script>
+</body>
+</html>
